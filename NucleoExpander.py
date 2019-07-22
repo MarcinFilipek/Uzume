@@ -8,9 +8,20 @@ class NucleoExpander:
         :param nop: number of packet in one send
         '''
         self.packetSerial = PacketSender(name_serial, nop)
+        self.horizontal_servo_angle = 90
+        self.vertical_servo_angle = 90
+
+    def check_angle(self, angle):
+        if angle < 0:
+            return  0
+        if angle > 180:
+            return 180
+        return angle
 
     def horizontal_servo_set_angle(self, angle):
-        self.packetSerial.add_packet(1, angle)
+        self.horizontal_servo_angle = self.check_angle(angle)
+        self.packetSerial.add_packet(1, self.horizontal_servo_angle)
 
     def vertical_servo_set_angle(self, angle):
-        self.packetSerial.add_packet(2, angle)
+        self.vertical_servo_angle = self.check_angle(angle)
+        self.packetSerial.add_packet(2, self.vertical_servo_angle)
