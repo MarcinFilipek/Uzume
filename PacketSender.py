@@ -35,13 +35,15 @@ class PacketSender:
         max_size = self.frame.get_max_size()
         actual_size = self.frame.get_actual_size()
 
-        for i in range(actual_size):
-            command = self.frame[i].command
-            data = self.frame[i].data
-            self.log('Send ({}, {})'.format(command, data))
-            command = command.to_bytes(2, byteorder='little')
-            data = data.to_bytes(2, byteorder='little')
-            self.serial.write([command[0], command[1], data[0], data[1]])
-        for l in range(max_size - actual_size):
-            self.log('Send ({}, {})'.format(0, 0))
-            self.serial.write([0, 0, 0, 0])
+        if actual_size > 0:
+            for i in range(actual_size):
+                command = self.frame[i].command
+                data = self.frame[i].data
+                self.log('Send ({}, {})'.format(command, data))
+                command = command.to_bytes(2, byteorder='little')
+                data = data.to_bytes(2, byteorder='little')
+                self.serial.write([command[0], command[1], data[0], data[1]])
+            for l in range(max_size - actual_size):
+                self.log('Send ({}, {})'.format(0, 0))
+                self.serial.write([0, 0, 0, 0])
+            self.frame.clear()
