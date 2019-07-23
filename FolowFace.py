@@ -1,5 +1,3 @@
-from os import times_result
-
 import cv2
 import dlib
 from NucleoExpander import NucleoExpander
