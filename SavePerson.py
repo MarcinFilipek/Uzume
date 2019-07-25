@@ -15,7 +15,7 @@ if not os.path.isdir(pathPersonDir + name):
 detector = dlib.get_frontal_face_detector()
 
 count_photo = 0
-number_of_photos = 60
+number_of_photos = 150
 
 while True:
     _, frame = cap.read()
@@ -29,7 +29,8 @@ while True:
         y2 = faces[0].bottom()
         count_photo += 1
         roi = frame_gray[y1-10:y2+10, x1-10:x2+10]
-        cv2.imwrite(pathPersonDir + name + '/{}.jpg'.format(count_photo), roi)
+        print(count_photo)
+        cv2.imwrite(pathPersonDir + name + '/{}_{}.jpg'.format(name, count_photo), roi)
     if count_photo == number_of_photos:
         break
 
