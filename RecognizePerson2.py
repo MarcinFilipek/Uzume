@@ -6,6 +6,7 @@ import cv2
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense, Flatten, Conv2D
 from tensorflow.python.keras.layers import MaxPool2D, Dropout
+from tensorflow.python.keras.models import model_from_json
 
 data_path = 'Persons/Persons_data'
 train_data_path = os.path.join(data_path, 'Train')
@@ -37,16 +38,16 @@ for i, j in zip(os.listdir(train_filipek_path), os.listdir(train_others_path)):
     y_train.append(0)
 
 for i, j in zip(os.listdir(test_filipek_path), os.listdir(test_others_path)):
-    image = Image.open(os.path.join(test_filipek_path, i))
-    data = np.asarray(image)
-    data = cv2.resize(data, (200, 200))
-    X_test.append(data)
-    y_test.append(1)
     image = Image.open(os.path.join(test_others_path, j))
     data = np.asarray(image)
     data = cv2.resize(data, (200, 200))
     X_test.append(data)
     y_test.append(0)
+    image = Image.open(os.path.join(test_filipek_path, i))
+    data = np.asarray(image)
+    data = cv2.resize(data, (200, 200))
+    X_test.append(data)
+    y_test.append(1)
 
 
 X_train = np.asarray(X_train)
@@ -65,36 +66,58 @@ X_test = X_test / 255
 print(X_train.shape, y_train.shape)
 print(X_test.shape, y_test.shape)
 
-input_shape = (200, 200, 1)
+# Load or training model
+loadmodel = input('Load model [y/n]?')
+if loadmodel == 'y':
+    with open('model_architecture.json', 'r') as f:
+        model = model_from_json(f.read())
+    model.load_weights('model_weights.h5')
+else:
+    input_shape = (200, 200, 1)
+    model = Sequential([
+        Conv2D(32, kernel_size=(3, 3), input_shape=input_shape, activation='relu'),
+        MaxPool2D((2, 2)),
 
-model = Sequential([
-    Conv2D(32, kernel_size=(3, 3), input_shape=input_shape, activation='relu'),
-    MaxPool2D((2, 2)),
+        Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        MaxPool2D((2, 2)),
 
-    Conv2D(64, kernel_size=(3, 3), activation='relu'),
-    Conv2D(64, kernel_size=(3, 3), activation='relu'),
-    MaxPool2D((2, 2)),
+        Conv2D(64, kernel_size=(5, 5), activation='relu'),
+        MaxPool2D((2, 2)),
 
-    Conv2D(64, kernel_size=(5, 5), activation='relu'),
-    MaxPool2D((2, 2)),
+        Conv2D(128, kernel_size=(5, 5), activation='relu'),
+        MaxPool2D((2, 2)),
 
-    Conv2D(128, kernel_size=(5, 5), activation='relu'),
-    MaxPool2D((2, 2)),
+        Conv2D(256, kernel_size=(5, 5), activation='relu'),
+        MaxPool2D((2, 2)),
 
-    Conv2D(256, kernel_size=(5, 5), activation='relu'),
-    MaxPool2D((2, 2)),
+        Flatten(),
 
-    Flatten(),
+        Dense(512, activation='relu'),
+        Dense(256, activation='relu'),
+        Dropout(0.5),
+        Dense(1, activation='sigmoid')
+    ])
 
-    Dense(512, activation='relu'),
-    Dense(256, activation='relu'),
-    Dropout(0.5),
-    Dense(1, activation='sigmoid')
-])
+
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.summary()
 
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(X_train, y_train, batch_size=20, epochs=15, validation_split=0.2)
+if loadmodel == 'n':
+    model.fit(X_train, y_train, batch_size=20, epochs=15, validation_split=0.2)
 
+# Test model
 model.evaluate(X_test, y_test)
+
+save_model = input('Save model [y/n]?')
+if save_model == 'y':
+    model.save_weights('model_weights.h5')
+    with open('model_architecture.json', 'w') as f:
+        f.write(model.to_json())
+
+
+image = Image.open('Persons/Persons_data/Val/Filipek/Filipek_5.jpg')
+data = np.asarray(image)
+data = cv2.resize(data, (200, 200))
+data = np.reshape(data, newshape=(-1, 200, 200, 1))
+print(model.predict(data))
