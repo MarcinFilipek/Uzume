@@ -28,9 +28,19 @@ while True:
             y2 = face.bottom()
             roi = frame_gray[y1 - 10:y2 + 10, x1 - 10:x2 + 10]
             roi = cv2.resize(roi, (200, 200))
-            cv2.imshow("Video", roi)
+
             roi = np.reshape(roi, newshape=(-1, 200, 200, 1))
-            print(model.predict(roi))
+            pred = model.predict(roi)
+            text = ''
+            if pred > 0.5:
+                text += 'Filipek {}'.format(pred)
+            else:
+                text += 'Others {}'.format(pred)
+
+            font = cv2.FONT_HERSHEY_COMPLEX
+            cv2.putText(frame_gray, text, (x1, y1 - 10), font, 0.5, (0, 0, 255), 1)
+            cv2.rectangle(frame_gray, (x1, y1), (x2, y2), (0, 0, 255), 3)
+    cv2.imshow("Video", frame_gray)
     key = cv2.waitKey(1)
     if key == 27:
         break
