@@ -74,30 +74,17 @@ if loadmodel == 'y':
     model.load_weights('model_weights.h5')
 else:
     input_shape = (200, 200, 1)
-    model = Sequential([
-        Conv2D(32, kernel_size=(3, 3), input_shape=input_shape, activation='relu'),
-        MaxPool2D((2, 2)),
-
-        Conv2D(64, kernel_size=(3, 3), activation='relu'),
-        Conv2D(64, kernel_size=(3, 3), activation='relu'),
-        MaxPool2D((2, 2)),
-
-        Conv2D(64, kernel_size=(5, 5), activation='relu'),
-        MaxPool2D((2, 2)),
-
-        Conv2D(128, kernel_size=(5, 5), activation='relu'),
-        MaxPool2D((2, 2)),
-
-        Conv2D(256, kernel_size=(5, 5), activation='relu'),
-        MaxPool2D((2, 2)),
-
-        Flatten(),
-
-        Dense(512, activation='relu'),
-        Dense(256, activation='relu'),
-        Dropout(0.5),
-        Dense(1, activation='sigmoid')
-    ])
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=(3, 3), input_shape=input_shape, activation='relu'))
+    model.add(MaxPool2D(pool_size=(2, 2)))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPool2D(pool_size=(2, 2)))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPool2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(1, activation='sigmoid'))
 
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -120,4 +107,5 @@ image = Image.open('Persons/Persons_data/Val/Filipek/Filipek_5.jpg')
 data = np.asarray(image)
 data = cv2.resize(data, (200, 200))
 data = np.reshape(data, newshape=(-1, 200, 200, 1))
+data = data / 255
 print(model.predict(data))
